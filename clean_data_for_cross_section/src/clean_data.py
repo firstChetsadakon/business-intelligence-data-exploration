@@ -150,6 +150,7 @@ def fill_missing_with_median(df, columns):
         if col in df.columns and pd.api.types.is_numeric_dtype(df[col]):  # ตรวจสอบว่าเป็นคอลัมน์ตัวเลข
             median_value = df[col].median()  # หา median ของคอลัมน์
             df[col].fillna(median_value, inplace=True)  # เติมค่า NaN ด้วย median
+            df[col] = df[col].apply(np.floor)
     return df
 
 def fill_missing_vehicle(row, priority_list):
@@ -192,9 +193,11 @@ def recalculate_accident_number(df):
         'รถบรรทุก6ล้อ', 'รถบรรทุกไม่เกิน10ล้อ', 'รถบรรทุกมากกว่า10ล้อ',
         'รถอีแต๋น', 'อื่นๆ']
 
+
     df['จำนวนรถที่เกิดเหตุ'] = df[car_column].sum(axis=1)
     df['รวมจำนวนผู้บาดเจ็บ'] = df['จำนวนผู้บาดเจ็บเล็ก'] + df['จำนวนผู้บาดเจ็บสาหัส']
-    df['จำนวนที่เกิดเหตุทั้ง'] = df['จำนวนรถที่เกิดเหตุ'] + df['รวมจำนวนผู้บาดเจ็บ'] + df['คนเดินเท้า'] + df['จำนวนผู้เสียชีวิต']
+    df['จำนวนที่เกิดเหตุทั้ง'] = df[car_column + ['คนเดินเท้า']].sum(axis=1)
+    df['รวมผู้ได้รับผลกระทบ'] = df[['จำนวนผู้เสียชีวิต', 'จำนวนผู้บาดเจ็บสาหัส', 'จำนวนผู้บาดเจ็บเล็ก']].sum(axis=1) 
     return df
 
 
@@ -230,6 +233,7 @@ def cap_outlier_alternative(df, numerical_feature):
             # เช็คว่าเหลือค่าที่ไม่ซ้ำกันกี่ค่า
             if np.unique(capped_values).size > 1:
                 df[column] = capped_values  # ถ้ายังมีมากกว่า 1 ค่า ให้ใช้ค่าที่ cap แล้ว
+                df[column] = df[column].apply(np.floor)
 
     return df
 
@@ -253,7 +257,7 @@ def clean_by_cap_and_fill(df,numerical_feature,categorical_feature,province_json
     cleaned_2_df = group_categorical_feature(cleaned_2_df) # จัดกลุ่ม
 
 
-    cleaned_2_df = recalculate_accident_number(df)
+    cleaned_2_df = recalculate_accident_number(cleaned_2_df)
 
     # # ปรับแก้ Outlier
     # cleaned_2_df_test = cap_outlier(cleaned_2_df,numerical_feature)
@@ -310,7 +314,7 @@ def find_province_for_point(lat, lon, province_boundaries):
 
     return ""
 
-def fill_province_and_add_region(df, boundary_json):
+def fill_province(df, boundary_json):
     """
     Process accident data and determine province for each location
     """
@@ -345,10 +349,13 @@ def fill_province_and_add_region(df, boundary_json):
     df['province'] = df['province'].replace('',np.nan)
     df['จังหวัด'] = df['จังหวัด'].fillna(df['province'])
     df['จังหวัด'] = df['จังหวัด'].fillna(df['จังหวัด'].mode().iloc[0])
-    df['ภาค'] =  df['จังหวัด'].apply(get_region)
     df = df.drop(['province'],axis=1)
     return df
 
+
+def add_region(df):
+    df['ภาค'] =  df['จังหวัด'].apply(get_region)
+    return df
 
 
 
