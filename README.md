@@ -25,31 +25,6 @@ business-intelligence-data-exploration/
 └── .idea/                               # IDE settings (for PyCharm, etc.)
 ```
 
-## 🛠️ How to Run
-
-1. **Install Python 3.8+** and recommended packages.
-2. (Optional) Create a virtual environment:
-
-```bash
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-```
-
-3. **Install packages** (if `requirements.txt` exists):
-
-```bash
-pip install -r requirements.txt
-```
-
-4. **Open Notebooks**:
-   Use Jupyter Lab or Jupyter Notebook:
-
-```bash
-jupyter lab
-```
-
-Navigate to files in the `source/` folder.
-
 ## 📌 Key Notebooks
 
 | Notebook                          | Purpose                                    |
